@@ -4,9 +4,10 @@ using System.Collections.Generic;
 
 public class CrewmanMover : MonoBehaviour {
 
+	NavMeshAgent agent;
 	Animator anim;
 	Vector3 scalechanger = new Vector3();
-	Vector3 movechanger = new Vector3();
+	Quaternion rotation = new Quaternion();
 	public float minidletime;
 	public float maxidletime;
 	float idletime;
@@ -16,7 +17,6 @@ public class CrewmanMover : MonoBehaviour {
 	float movetime;
 	bool moving = false;
 	List<string> animpara;
-	float movespeed;
 	float stopwatch;
 	public float itchiness = 20f;
 	float randompercent;
@@ -25,9 +25,12 @@ public class CrewmanMover : MonoBehaviour {
 
 	void Start ()
 	{
+		rotation.x = 0f;
+		rotation.y = 0f;
+		rotation.z = 0f;
+		agent = GetComponent<NavMeshAgent> ();
 		anim = GetComponent<Animator> ();
 		scalechanger = transform.localScale;
-		movechanger = transform.localPosition;
 		animpara = new List<string> ();
 		animpara.Add ("Ismoving");
 		animpara.Add ("Isstretching");
@@ -59,43 +62,46 @@ public class CrewmanMover : MonoBehaviour {
 			}
 			if (randompercent > 0.66f) 
 			{
-				if (Random.value < 0.5)
-				movespeed = 0.02f;
-				else movespeed = -0.02f;
 			moving = true;
 			idle = false;
-			idletime = minidletime + (Random.Range (0, maxidletime - minidletime));
+			idletime = Random.Range (minidletime, maxidletime);
 			stopwatch = 0.0f;
 			clearanimation ("Ismoving");
+			Vector3 destination = new Vector3 ();
+			destination = transform.localPosition;
+			destination.x = destination.x + Random.Range (-3f, 3f);
+			destination.z = destination.z + Random.Range (-3f, 3f);
+			agent.SetDestination (destination);
+			agent.Resume ();
 			}
 		}
 
 		if (stopwatch > movetime && moving) 
 		{
 			moving = false;
+			agent.Stop ();
 			idle = true;
-			movespeed = 0.0f;
-			movetime = minmovetime + (Random.Range (0, maxmovetime - minmovetime));
+			movetime = Random.Range (minmovetime, maxmovetime);
 			stopwatch = 0.0f;
 			clearanimation ();
 		}
+			
 
 		if (moving) 
 		{
-			movechanger.x = movechanger.x + movespeed;
-			transform.localPosition = movechanger;
-		
-			if (movespeed > 0)
+			
+			if (agent.velocity.x > 0)
 			{
 				scalechanger.x = Mathf.Abs (scalechanger.x);
 				transform.localScale = scalechanger;
 			}
-			if (movespeed < 0) 
+			if (agent.velocity.x < 0) 
 			{
 				scalechanger.x = Mathf.Abs (scalechanger.x)*(-1);
 				transform.localScale = scalechanger;
 			}
 		}
+		transform.localRotation = rotation;
 	}
 	
 
@@ -123,6 +129,11 @@ public class CrewmanMover : MonoBehaviour {
 		}
 	}
 
+
+	/// <summary>
+	/// Template Class for all Idle Actions to be built into a list for
+	/// random generation of contextual idle actions.
+	/// </summary>
 	class idleaction 
 	{
 		public idleaction(string id, float mint, float maxt, string animhandle){
