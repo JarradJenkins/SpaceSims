@@ -5,8 +5,8 @@
 
 # Except for these:
 !/.gitignore
-!/Assets
-!/ProjectSettings
+!/Space Sims/Assets
+!/Space Sims/ProjectSettings
 
 #====================================================================================
 
